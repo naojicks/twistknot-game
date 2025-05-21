@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Twist Knot風ゲーム</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin: 0; padding: 0; }
+    canvas { background: #f0f0f0; display: block; margin: 20px auto; border: 1px solid #ccc; }
+    h1 { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>ロープをほどこう！</h1>
+  <canvas id="gameCanvas" width="300" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let points = [
+      { x: 50, y: 50 },
+      { x: 250, y: 50 },
+      { x: 50, y: 250 },
+      { x: 250, y: 250 }
+    ];
+
+    let lines = [
+      [0, 3],
+      [1, 2]
+    ];
+
+    let draggingPoint = null;
+
+    canvas.addEventListener("mousedown", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        if ((p.x - mouseX) ** 2 + (p.y - mouseY) ** 2 < 100) {
+          draggingPoint = i;
+          break;
+        }
+      }
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (draggingPoint !== null) {
+        const rect = canvas.getBoundingClientRect();
+        points[draggingPoint].x = e.clientX - rect.left;
+        points[draggingPoint].y = e.clientY - rect.top;
+        draw();
+      }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      draggingPoint = null;
+      if (!isIntersecting()) {
+        alert("クリア！");
+      }
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let line of lines) {
+        const p1 = points[line[0]];
+        const p2 = points[line[1]];
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+      }
+
+      for (let p of points) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      }
+    }
+
+    function isIntersecting() {
+      function ccw(A, B, C) {
+        return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+      }
+
+      function intersect(A, B, C, D) {
+        return ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+      }
+
+      return intersect(points[0], points[3], points[1], points[2]);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
